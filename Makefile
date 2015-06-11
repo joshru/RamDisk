@@ -1,5 +1,5 @@
 # Comment/uncomment the following line to disable/enable debugging
-#DEBUG = y
+# DEBUG = y
 
 
 # Add your debugging flag (or not) to CFLAGS
@@ -19,6 +19,8 @@ ifneq ($(KERNELRELEASE),)
 # FIXME - Change this to follow your naming convention.  
 obj-m	:= rd-uwt.o
 obj-m	+= rd-uwt.o
+# obj-m := rdtest.o
+# obj-m := sculld.o
 
 else
 

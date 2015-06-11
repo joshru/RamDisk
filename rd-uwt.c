@@ -18,7 +18,6 @@
 
 /* Necessary includes for device drivers */
 #include <linux/init.h>
-// #include <linux/config.h>
 #include <linux/module.h>
 #include <linux/kernel.h> /* printk() */
 #include <linux/slab.h> /* kmalloc() */
@@ -27,8 +26,8 @@
 #include <linux/types.h> /* size_t */
 #include <linux/proc_fs.h>
 #include <linux/fcntl.h> /* O_ACCMODE */
-// #include <asm/system.h> /* cli(), *_flags */
 #include <asm/uaccess.h> /* copy_from/to_user */
+#include <linux/blkdev.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 
@@ -55,7 +54,7 @@ module_exit(memory_exit);
 
 /* Global variables of the driver */
 /* Major number */
-int memory_major = 60;
+int memory_major = 75;
 /* Buffer to store data */
 char *memory_buffer;
 
@@ -64,11 +63,15 @@ int memory_init(void) {
   int result;
 
   /* Registering device */
-  result = register_chrdev(memory_major, "memory", &memory_fops);
-  if (result < 0) {
+  // result = register_chrdev(memory_major, "josh", &memory_fops);
+  result = register_blkdev(memory_major, "josh");
+  if (result < 0) { //register returns 0 if it reserved a device succesfully
     printk(
       "<1>memory: cannot obtain major number %d\n", memory_major);
     return result;
+  }
+  if (result == 0) {
+  	printk("<1>Reserved block device %d\n", memory_major);
   }
 
   /* Allocating memory for the buffer */
@@ -77,9 +80,9 @@ int memory_init(void) {
     result = -ENOMEM;
     goto fail; 
   } 
-  memset(memory_buffer, 0, 1);
+  memset(memory_buffer, 0, sizeof(memory_buffer));
 
-  printk("<1>Inserting memory module\n"); 
+  printk("<1>Inserting memory module!\n"); 
   return 0;
 
   fail: 
@@ -89,25 +92,27 @@ int memory_init(void) {
 
 void memory_exit(void) {
   /* Freeing the major number */
-  unregister_chrdev(memory_major, "memory");
+  // unregister_chrdev(memory_major, "josh");
+	unregister_blkdev(memory_major, "josh");
 
   /* Freeing buffer memory */
   if (memory_buffer) {
     kfree(memory_buffer);
   }
 
-  printk("<1>Removing memory module\n");
+  printk("<1>Removing memory module!\n");
 
 }
 
 int memory_open(struct inode *inode, struct file *filp) {
-
+  
+  printk("<1>Memory module open command received!\n");
   /* Success */
   return 0;
 }
 
 int memory_release(struct inode *inode, struct file *filp) {
- 
+  printk("<1>?Memory module release command received!\n");
   /* Success */
   return 0;
 }
@@ -116,7 +121,8 @@ ssize_t memory_read(struct file *filp, char *buf,
                     size_t count, loff_t *f_pos) { 
  
   /* Transfering data to user space */ 
-  copy_to_user(buf,memory_buffer,1);
+  copy_to_user(buf, memory_buffer, sizeof(memory_buffer));
+  printk("<1>Memory module read command received!\n");
 
   /* Changing reading position as best suits */ 
   if (*f_pos == 0) { 
@@ -133,7 +139,8 @@ ssize_t memory_write( struct file *filp, char *buf,
   char *tmp;
 
   tmp=buf+count-1;
-  copy_from_user(memory_buffer,tmp,1);
+  copy_from_user(memory_buffer, tmp, sizeof(memory_buffer));
+  printk("<1>Memory module write command received!\n");
   return 1;
 }
 
