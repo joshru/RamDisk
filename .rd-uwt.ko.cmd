@@ -1,1 +1,0 @@
-cmd_/home/joshru/ktrees/ramdisk/rd-uwt.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/joshru/ktrees/ramdisk/rd-uwt.ko /home/joshru/ktrees/ramdisk/rd-uwt.o /home/joshru/ktrees/ramdisk/rd-uwt.mod.o
